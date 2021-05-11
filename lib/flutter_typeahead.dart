@@ -670,34 +670,37 @@ class TypeAheadField<T> extends StatefulWidget {
   final bool autoFlipDirection;
   final bool hideKeyboard;
 
+  final bool showSuggestionsOnFocus;
+
   /// Creates a [TypeAheadField]
-  TypeAheadField(
-      {Key key,
-      @required this.suggestionsCallback,
-      @required this.itemBuilder,
-      @required this.onSuggestionSelected,
-      this.textFieldConfiguration: const TextFieldConfiguration(),
-      this.suggestionsBoxDecoration: const SuggestionsBoxDecoration(),
-      this.debounceDuration: const Duration(milliseconds: 300),
-      this.suggestionsBoxController,
-      this.loadingBuilder,
-      this.noItemsFoundBuilder,
-      this.errorBuilder,
-      this.transitionBuilder,
-      this.animationStart: 0.25,
-      this.animationDuration: const Duration(milliseconds: 500),
-      this.getImmediateSuggestions: false,
-      this.suggestionsBoxVerticalOffset: 5.0,
-      this.direction: AxisDirection.down,
-      this.hideOnLoading: false,
-      this.hideOnEmpty: false,
-      this.hideOnError: false,
-      this.hideSuggestionsOnKeyboardHide: true,
-      this.keepSuggestionsOnLoading: true,
-      this.keepSuggestionsOnSuggestionSelected: false,
-      this.autoFlipDirection: false,
-      this.hideKeyboard: false})
-      : assert(suggestionsCallback != null),
+  TypeAheadField({
+    Key key,
+    @required this.suggestionsCallback,
+    @required this.itemBuilder,
+    @required this.onSuggestionSelected,
+    this.textFieldConfiguration: const TextFieldConfiguration(),
+    this.suggestionsBoxDecoration: const SuggestionsBoxDecoration(),
+    this.debounceDuration: const Duration(milliseconds: 300),
+    this.suggestionsBoxController,
+    this.loadingBuilder,
+    this.noItemsFoundBuilder,
+    this.errorBuilder,
+    this.transitionBuilder,
+    this.animationStart: 0.25,
+    this.animationDuration: const Duration(milliseconds: 500),
+    this.getImmediateSuggestions: false,
+    this.suggestionsBoxVerticalOffset: 5.0,
+    this.direction: AxisDirection.down,
+    this.hideOnLoading: false,
+    this.hideOnEmpty: false,
+    this.hideOnError: false,
+    this.hideSuggestionsOnKeyboardHide: true,
+    this.keepSuggestionsOnLoading: true,
+    this.keepSuggestionsOnSuggestionSelected: false,
+    this.autoFlipDirection: false,
+    this.hideKeyboard: false,
+    this.showSuggestionsOnFocus = false,
+  })  : assert(suggestionsCallback != null),
         assert(itemBuilder != null),
         assert(onSuggestionSelected != null),
         assert(animationStart != null &&
@@ -781,13 +784,23 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
     widget.suggestionsBoxController?._effectiveFocusNode =
         this._effectiveFocusNode;
 
-    this._focusNodeListener = () {
-      if (_effectiveFocusNode.hasFocus) {
-        this._suggestionsBox.open();
-      } else {
-        this._suggestionsBox.close();
-      }
-    };
+    if (widget.showSuggestionsOnFocus) {
+      this._focusNodeListener = () {
+        if (_effectiveFocusNode.hasFocus) {
+          if (widget.showSuggestionsOnFocus) this._suggestionsBox.open();
+        } else {
+          this._suggestionsBox.close();
+        }
+      };
+    } else {
+      _effectiveController.addListener(() {
+        if (_effectiveFocusNode.hasFocus) {
+          _suggestionsBox.open();
+        }
+      });
+
+      _focusNodeListener = () {};
+    }
 
     this._effectiveFocusNode.addListener(_focusNodeListener);
 
